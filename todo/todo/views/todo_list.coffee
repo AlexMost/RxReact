@@ -1,10 +1,11 @@
 React = require 'react'
 {createFactory} = React
-{div, h1, input, header, section, label, ul, li, button, p} = React.DOM
+{div, h1, h2, input, header, section, label, ul, li, button, p, a} = React.DOM
 TodoItem = createFactory(require './todo_item')
 
 
 TodoList = React.createClass
+
 
     mainInputKeyDown: (ev) ->
         @props.eventStream.onNext
@@ -27,7 +28,6 @@ TodoList = React.createClass
 
     render: ->
         div null,
-
             header {id: "header"},
 
                 h1 null, "todos"

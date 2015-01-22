@@ -1,5 +1,6 @@
 Rx = require 'rx'
 
+
 dispatch_actions = (view, subject, store) ->
     mainInputKeyDown = subject
         .filter(({action}) -> action is "mainInputKeyDown")
@@ -7,15 +8,15 @@ dispatch_actions = (view, subject, store) ->
     main_input_enter_key_down = mainInputKeyDown
         .filter(({keyCode}) -> keyCode is 13)
 
+    todoTextChange = subject
+        .filter(({action}) -> action is "mainInputTextChange")
+        .do(({text}) -> store.setTodoText(text))
+
     addItem = main_input_enter_key_down
         .filter(({text}) -> text.length > 0)
         .do(({text}) ->
             store.addItem text
             store.setTodoText "")
-
-    todoTextChange = subject
-        .filter(({action}) -> action is "mainInputTextChange")
-        .do(({text}) -> store.setTodoText(text))
 
     destroyItem = subject
         .filter(({action}) -> action is "itemDestroy")

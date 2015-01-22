@@ -87,6 +87,18 @@ input[type="checkbox"] {
 	text-rendering: optimizeLegibility;
 }
 
+#addbtn {
+    position: absolute;
+	top: -130px;
+    background: rgba(122, 65, 10, 0.71);
+    color: white;
+    font-weight: bold;
+    outline: auto;
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+}
+
 #header {
 	padding-top: 15px;
 	border-radius: inherit;
