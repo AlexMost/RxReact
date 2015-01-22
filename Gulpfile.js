@@ -42,6 +42,7 @@ gulp.task('deploy_hello_world', ['default'], function(){
     return gulp.src('./hello_world/public/**/*.*')
     .pipe(jsfilter)
     .pipe(uglify())
+    .pipe(jsfilter.restore())
     .pipe(gulp.dest('./dist/hello_world/public'))
 });
 
