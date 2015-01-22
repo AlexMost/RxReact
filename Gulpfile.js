@@ -3,6 +3,7 @@ var browserify = require('gulp-browserify');
 var rename = require('gulp-rename');
 var uglify = require('gulp-uglify');
 var filter = require('gulp-filter');
+var deploy = require('gulp-gh-pages');
 
 
 gulp.task('default', ['todo', 'hello_world']);
@@ -37,6 +38,7 @@ gulp.task('hello_world', function(){
     .pipe(gulp.dest('./hello_world/public/js'));
 });
 
+
 gulp.task('deploy_hello_world', ['default'], function(){
     jsfilter = filter(['**/*.js'])
     return gulp.src('./hello_world/public/**/*.*')
@@ -47,11 +49,15 @@ gulp.task('deploy_hello_world', ['default'], function(){
 });
 
 
-gulp.task(
-'deploy',
-['deploy_hello_world', 'deploy_todo'],
-function (){
-    gulp.src("index.html").pipe(gulp.dest('./dist'))
+gulp.task('copy_main_index', function(){
+    return gulp.src("index.html").pipe(gulp.dest('./dist'))
+})
+
+
+gulp.task('deploy',
+    ['deploy_hello_world', 'deploy_todo', 'copy_main_index'], function (){
+    return gulp.src("./dist/**/*")
+    .pipe(deploy());
 });
 
 
