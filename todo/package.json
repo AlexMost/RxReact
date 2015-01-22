@@ -15,5 +15,8 @@
     "gulp-rename": "^1.2.0",
     "react": "^0.12.2",
     "rx": "^2.3.24"
+  },
+  "devDependencies": {
+    "gulp-gh-pages": "^0.4.0"
   }
 }
