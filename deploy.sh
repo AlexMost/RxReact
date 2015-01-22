@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# gulp deploy &&
+gulp deploy &&
 rm -rf ../dist &&
 mv dist ../dist &&
 git checkout gh-pages &&
