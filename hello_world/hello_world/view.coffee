@@ -3,6 +3,8 @@ React = require 'react'
 
 
 HelloView = React.createClass
+    getDefaultProps: ->
+        clicksCount: 0
 
     incrementClickCount: ->
         @props.eventStream.onNext

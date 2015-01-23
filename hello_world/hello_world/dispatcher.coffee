@@ -1,7 +1,11 @@
 Rx = require 'rx'
 
 
-dispatch_actions = (view, subject, store) ->
+getViewState = (store) ->
+    clicksCount: store.getClicksCount()
+
+
+dispatchActions = (view, subject, store) ->
     incrementClickCountAction = subject
         .filter(({action}) -> action is "increment_click_count")
         .do(-> store.incrementClicksCount())
@@ -11,9 +15,9 @@ dispatch_actions = (view, subject, store) ->
         # some more actions here for updating view ...
 
     ).subscribe(
-        -> view.setProps store.getViewState()
+        -> view.setProps getViewState(store)
         (err) ->
             console.error? err)
 
 
-module.exports = dispatch_actions
+module.exports = dispatchActions

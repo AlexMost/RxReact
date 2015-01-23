@@ -12,12 +12,12 @@ HelloStorage = require('./storage');
 dispatchActions = require('./dispatcher');
 
 initApp = function(mountNode) {
-  var componentProps, store, subject, view;
+  var store, subject, view;
   subject = new Rx.Subject();
   store = new HelloStorage();
-  componentProps = store.getViewState();
-  componentProps.eventStream = subject;
-  view = React.render(HelloView(componentProps), mountNode);
+  view = React.render(HelloView({
+    eventStream: subject
+  }), mountNode);
   return dispatchActions(view, subject, store);
 };
 
@@ -26,11 +26,17 @@ module.exports = initApp;
 
 
 },{"./dispatcher":2,"./storage":4,"./view":5,"react":153,"rx":158}],2:[function(require,module,exports){
-var Rx, dispatch_actions;
+var Rx, dispatchActions, getViewState;
 
 Rx = require('rx');
 
-dispatch_actions = function(view, subject, store) {
+getViewState = function(store) {
+  return {
+    clicksCount: store.getClicksCount()
+  };
+};
+
+dispatchActions = function(view, subject, store) {
   var incrementClickCountAction;
   incrementClickCountAction = subject.filter(function(_arg) {
     var action;
@@ -40,13 +46,13 @@ dispatch_actions = function(view, subject, store) {
     return store.incrementClicksCount();
   });
   return Rx.Observable.merge(incrementClickCountAction).subscribe(function() {
-    return view.setProps(store.getViewState());
+    return view.setProps(getViewState(store));
   }, function(err) {
     return typeof console.error === "function" ? console.error(err) : void 0;
   });
 };
 
-module.exports = dispatch_actions;
+module.exports = dispatchActions;
 
 
 
@@ -67,14 +73,12 @@ HelloStorage = (function() {
     this.clicksCount = 0;
   }
 
-  HelloStorage.prototype.incrementClicksCount = function() {
-    return this.clicksCount += 1;
+  HelloStorage.prototype.getClicksCount = function() {
+    return this.clicksCount;
   };
 
-  HelloStorage.prototype.getViewState = function() {
-    return {
-      clicksCount: this.clicksCount
-    };
+  HelloStorage.prototype.incrementClicksCount = function() {
+    return this.clicksCount += 1;
   };
 
   return HelloStorage;
@@ -93,6 +97,11 @@ React = require('react');
 _ref = React.DOM, div = _ref.div, button = _ref.button;
 
 HelloView = React.createClass({
+  getDefaultProps: function() {
+    return {
+      clicksCount: 0
+    };
+  },
   incrementClickCount: function() {
     return this.props.eventStream.onNext({
       action: "increment_click_count"

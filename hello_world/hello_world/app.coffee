@@ -8,12 +8,7 @@ dispatchActions = require './dispatcher'
 initApp = (mountNode) ->
     subject = new Rx.Subject()
     store = new HelloStorage()
-
-    componentProps = store.getViewState()
-    componentProps.eventStream = subject
-
-    view = React.render HelloView(componentProps), mountNode
-
+    view = React.render HelloView({eventStream: subject}), mountNode
     dispatchActions(view, subject, store)
 
 
