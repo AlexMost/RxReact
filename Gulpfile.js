@@ -6,88 +6,53 @@ var filter = require('gulp-filter');
 var deploy = require('gulp-gh-pages');
 
 
-gulp.task('default', ['todo', 'hello_world', 'hello_world2']);
+var apps = ['hello_world', 'todo', 'hello_world2'];
 
 
-gulp.task('todo', function(){
-    return gulp.src('./todo/todo/index.coffee', {read: false})
-    .pipe(browserify({
-        transform: ['coffeeify'],
-        extensions: ['.coffee']}))
-    .pipe(rename('app.js'))
-    .pipe(gulp.dest('./todo/public/js'));
+// Build
+apps.map(function(app){
+    gulp.task(app, function(){
+        return gulp.src('./' + app + '/' + app + '/index.coffee', {read: false})
+        .pipe(browserify({
+            transform: ['coffeeify'],
+            extensions: ['.coffee']}))
+        .pipe(rename('app.js'))
+        .pipe(gulp.dest('./' + app + '/public/js'));
+    });    
 });
 
-
-gulp.task('deploy_todo', ['default'], function(){
-    jsfilter = filter(['**/*.js'])
-    return gulp.src('./todo/public/**/*.*')
-    .pipe(jsfilter)
-    .pipe(uglify())
-    .pipe(jsfilter.restore())
-    .pipe(gulp.dest('./dist/todo/public'));
+// Deploy
+apps.map(function(app){
+    gulp.task('deploy_' + app, function(){
+        jsfilter = filter(['**/*.js'])
+        return gulp.src('./' + app + '/public/**/*.*')
+        .pipe(jsfilter)
+        .pipe(uglify())
+        .pipe(jsfilter.restore())
+        .pipe(gulp.dest('./dist/' + app + '/public'));
+    });
 });
 
-
-gulp.task('hello_world', function(){
-    return gulp.src('./hello_world/hello_world/index.coffee', {read: false})
-    .pipe(browserify({
-        transform: ['coffeeify'],
-        extensions: ['.coffee']}))
-    .pipe(rename('app.js'))
-    .pipe(gulp.dest('./hello_world/public/js'));
+// Watch
+gulp.task('watch', function(){
+    apps.map(function(app){
+        gulp.watch('./' + app + '/' + app + '/**/*.*', [app]);
+    });
 });
 
-
-gulp.task('deploy_hello_world', ['default'], function(){
-    jsfilter = filter(['**/*.js'])
-    return gulp.src('./hello_world/public/**/*.*')
-    .pipe(jsfilter)
-    .pipe(uglify())
-    .pipe(jsfilter.restore())
-    .pipe(gulp.dest('./dist/hello_world/public'));
-});
-
-
-gulp.task('hello_world2', function(){
-    return gulp.src('./hello_world2/hello_world2/index.coffee', {read: false})
-    .pipe(browserify({
-        transform: ['coffeeify'],
-        extensions: ['.coffee']}))
-    .pipe(rename('app.js'))
-    .pipe(gulp.dest('./hello_world2/public/js'));
-});
-
-
-gulp.task('deploy_hello_world2', ['default'], function(){
-    jsfilter = filter(['**/*.js'])
-    return gulp.src('./hello_world2/public/**/*.*')
-    .pipe(jsfilter)
-    .pipe(uglify())
-    .pipe(jsfilter.restore())
-    .pipe(gulp.dest('./dist/hello_world2/public'));
-});
-
+gulp.task('default', apps);
 
 gulp.task('copy_main_index', function(){
     return gulp.src("index.html").pipe(gulp.dest('./dist'));
 });
 
-
-gulp.task('deploy',
-    [
-        'deploy_hello_world',
-        'deploy_todo',
-        'copy_main_index',
-        'deploy_hello_world2'], function (){
-    return gulp.src("./dist/**/*")
-    .pipe(deploy());
+gulp.task('deploy_apps', ['default'], function() {
+    apps.map(function(app){return 'deploy_' + app});
 });
 
 
-gulp.task('watch', function(){
-    gulp.watch('./todo/todo/**/*.*', ['todo']);
-    gulp.watch('./hello_world/hello_world/**/*.*', ['hello_world']);
-    gulp.watch('./hello_world2/hello_world2/**/*.*', ['hello_world2']);
+gulp.task('deploy', ['deploy_apps', 'copy_main_index'], function (){
+    return gulp.src("./dist/**/*")
+    .pipe(deploy());
 });
 
