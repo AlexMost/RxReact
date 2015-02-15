@@ -34202,6 +34202,11 @@ _ref = React.DOM, div = _ref.div, h1 = _ref.h1, h2 = _ref.h2, input = _ref.input
 TodoItem = createFactory(require('./todo_item'));
 
 TodoList = React.createClass({
+  getDefaultProps: function() {
+    return {
+      todoItems: []
+    };
+  },
   mainInputKeyDown: function(ev) {
     return this.props.eventStream.onNext({
       action: "mainInputKeyDown",

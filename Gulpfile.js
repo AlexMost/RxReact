@@ -4,6 +4,8 @@ var rename = require('gulp-rename');
 var uglify = require('gulp-uglify');
 var filter = require('gulp-filter');
 var deploy = require('gulp-gh-pages');
+var react_render = require('gulp-react-render');
+require('coffee-script/register');
 
 
 var apps = ['hello_world', 'todo', 'hello_world2'];
@@ -25,10 +27,15 @@ apps.map(function(app){
 apps.map(function(app){
     gulp.task('deploy_' + app, function(){
         jsfilter = filter(['**/*.js'])
+        htmlfilter = filter(['**/*.html'])
+
         return gulp.src('./' + app + '/public/**/*.*')
         .pipe(jsfilter)
         .pipe(uglify())
         .pipe(jsfilter.restore())
+        .pipe(htmlfilter)
+        .pipe(react_render())
+        .pipe(htmlfilter.restore())
         .pipe(gulp.dest('./dist/' + app + '/public'));
     });
 });
@@ -43,11 +50,13 @@ gulp.task('watch', function(){
 gulp.task('default', apps);
 
 gulp.task('copy_main_index', function(){
-    return gulp.src("index.html").pipe(gulp.dest('./dist'));
+    return gulp.src("index.html")
+    .pipe(react_render())
+    .pipe(gulp.dest('./dist'));
 });
 
 gulp.task('deploy_apps', ['default'], function() {
-    apps.map(function(app){return 'deploy_' + app});
+    return apps.map(function(app){return 'deploy_' + app});
 });
 
 

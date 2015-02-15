@@ -31,6 +31,5 @@ HelloView = React.createClass
                 "Click -1"
 
 
-
 module.exports = HelloView
 

@@ -5,6 +5,8 @@ TodoItem = createFactory(require './todo_item')
 
 
 TodoList = React.createClass
+    getDefaultProps: ->
+        todoItems: []
 
 
     mainInputKeyDown: (ev) ->
