@@ -6,33 +6,33 @@ getViewState = (store) ->
     showSavedMessage: store.getShowSavedMessage()
 
 
-dispatchActions = (view, subject, store) ->
-    incrementClickCountSource = subject
+dispatchActions = (view, eventStream, store) ->
+    incrementClickStream = eventStream
         .filter(({action}) -> action is "increment_click_count")
         .do(-> store.incrementClicksCount())
         .share()
 
-    decrementClickCountSource = subject
+    decrementClickStream = eventStream
         .filter(({action}) -> action is "decrement_click_count")
         .do(-> store.decrementClickscount())
         .share()
 
-    countClicks = Rx.Observable
-        .merge(incrementClickCountSource, decrementClickCountSource)
+    countClicksStream = Rx.Observable
+        .merge(incrementClickStream, decrementClickStream)
 
-    showSavedMessageSource = countClicks
+    showSavedMessageStream = countClicksStream
         .throttle(1000)
         .distinct(-> store.getClicksCount())
         .flatMap(-> saveToDb store.getClicksCount())
         .do(-> store.enableSavedMessage())
 
-    hideSavedMessage = showSavedMessageSource.delay(2000)
+    hideSavedMessageStream = showSavedMessageStream.delay(2000)
     .do(-> store.disableSavedMessage())
 
     Rx.Observable.merge(
-        countClicks
-        showSavedMessageSource
-        hideSavedMessage
+        countClicksStream
+        showSavedMessageStream
+        hideSavedMessageStream
         # some more actions here for updating view ...
 
     ).subscribe(

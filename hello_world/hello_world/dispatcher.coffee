@@ -5,13 +5,13 @@ getViewState = (store) ->
     clicksCount: store.getClicksCount()
 
 
-dispatchActions = (view, subject, store) ->
-    incrementClickCountAction = subject
+dispatchActions = (view, eventStream, store) ->
+    incrementClickStream = eventStream
         .filter(({action}) -> action is "increment_click_count")
         .do(-> store.incrementClicksCount())
 
     Rx.Observable.merge(
-        incrementClickCountAction
+        incrementClickStream
         # some more actions here for updating view ...
 
     ).subscribe(

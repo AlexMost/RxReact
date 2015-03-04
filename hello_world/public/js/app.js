@@ -12,13 +12,13 @@ HelloStorage = require('./storage');
 dispatchActions = require('./dispatcher');
 
 initApp = function(mountNode) {
-  var store, subject, view;
-  subject = new Rx.Subject();
+  var eventStream, store, view;
+  eventStream = new Rx.Subject();
   store = new HelloStorage();
   view = React.render(HelloView({
-    eventStream: subject
+    eventStream: eventStream
   }), mountNode);
-  return dispatchActions(view, subject, store);
+  return dispatchActions(view, eventStream, store);
 };
 
 module.exports = initApp;
@@ -36,16 +36,16 @@ getViewState = function(store) {
   };
 };
 
-dispatchActions = function(view, subject, store) {
-  var incrementClickCountAction;
-  incrementClickCountAction = subject.filter(function(_arg) {
+dispatchActions = function(view, eventStream, store) {
+  var incrementClickStream;
+  incrementClickStream = eventStream.filter(function(_arg) {
     var action;
     action = _arg.action;
     return action === "increment_click_count";
   })["do"](function() {
     return store.incrementClicksCount();
   });
-  return Rx.Observable.merge(incrementClickCountAction).subscribe(function() {
+  return Rx.Observable.merge(incrementClickStream).subscribe(function() {
     return view.setProps(getViewState(store));
   }, function(err) {
     return typeof console.error === "function" ? console.error(err) : void 0;

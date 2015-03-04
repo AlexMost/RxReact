@@ -12,13 +12,13 @@ HelloStorage = require('./storage');
 dispatchActions = require('./dispatcher');
 
 initApp = function(mountNode) {
-  var store, subject, view;
-  subject = new Rx.Subject();
+  var eventStream, store, view;
+  eventStream = new Rx.Subject();
   store = new HelloStorage();
   view = React.render(HelloView({
-    eventStream: subject
+    eventStream: eventStream
   }), mountNode);
-  return dispatchActions(view, subject, store);
+  return dispatchActions(view, eventStream, store);
 };
 
 module.exports = initApp;
@@ -39,34 +39,34 @@ getViewState = function(store) {
   };
 };
 
-dispatchActions = function(view, subject, store) {
-  var countClicks, decrementClickCountSource, hideSavedMessage, incrementClickCountSource, showSavedMessageSource;
-  incrementClickCountSource = subject.filter(function(_arg) {
+dispatchActions = function(view, eventStream, store) {
+  var countClicksStream, decrementClickStream, hideSavedMessageStream, incrementClickStream, showSavedMessageStream;
+  incrementClickStream = eventStream.filter(function(_arg) {
     var action;
     action = _arg.action;
     return action === "increment_click_count";
   })["do"](function() {
     return store.incrementClicksCount();
   }).share();
-  decrementClickCountSource = subject.filter(function(_arg) {
+  decrementClickStream = eventStream.filter(function(_arg) {
     var action;
     action = _arg.action;
     return action === "decrement_click_count";
   })["do"](function() {
     return store.decrementClickscount();
   }).share();
-  countClicks = Rx.Observable.merge(incrementClickCountSource, decrementClickCountSource);
-  showSavedMessageSource = countClicks.throttle(1000).distinct(function() {
+  countClicksStream = Rx.Observable.merge(incrementClickStream, decrementClickStream);
+  showSavedMessageStream = countClicksStream.throttle(1000).distinct(function() {
     return store.getClicksCount();
   }).flatMap(function() {
     return saveToDb(store.getClicksCount());
   })["do"](function() {
     return store.enableSavedMessage();
   });
-  hideSavedMessage = showSavedMessageSource.delay(2000)["do"](function() {
+  hideSavedMessageStream = showSavedMessageStream.delay(2000)["do"](function() {
     return store.disableSavedMessage();
   });
-  return Rx.Observable.merge(countClicks, showSavedMessageSource, hideSavedMessage).subscribe(function() {
+  return Rx.Observable.merge(countClicksStream, showSavedMessageStream, hideSavedMessageStream).subscribe(function() {
     return view.setProps(getViewState(store));
   }, function(err) {
     return typeof console.error === "function" ? console.error(err) : void 0;

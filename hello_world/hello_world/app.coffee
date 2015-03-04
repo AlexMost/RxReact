@@ -6,10 +6,10 @@ dispatchActions = require './dispatcher'
 
 
 initApp = (mountNode) ->
-    subject = new Rx.Subject()
+    eventStream = new Rx.Subject()
     store = new HelloStorage()
-    view = React.render HelloView({eventStream: subject}), mountNode
-    dispatchActions(view, subject, store)
+    view = React.render HelloView({eventStream}), mountNode
+    dispatchActions(view, eventStream, store)
 
 
 module.exports = initApp
