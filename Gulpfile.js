@@ -8,7 +8,7 @@ var react_render = require('gulp-react-render');
 require('coffee-script/register');
 
 
-var apps = ['hello_world', 'todo', 'hello_world2'];
+var apps = ['hello_world', 'todo', 'hello_world2', "nested_components"];
 
 
 // Build
