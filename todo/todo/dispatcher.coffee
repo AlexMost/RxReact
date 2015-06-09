@@ -1,7 +1,14 @@
 Rx = require 'rx'
+{setTodoText, addItem, destroyItem,
+checkItem, setCheckAll} = require './todo_storage'
 
 
-dispatch_actions = (view, subject, store) ->
+getViewState = (state) ->
+    todoText: state.get("todoText")
+    todoItems: state.get("todoItems")
+
+
+dispatch_actions = (view, subject, initialState) ->
     mainInputKeyDown = subject
         .filter(({action}) -> action is "mainInputKeyDown")
 
@@ -10,41 +17,31 @@ dispatch_actions = (view, subject, store) ->
 
     todoTextChange = subject
         .filter(({action}) -> action is "mainInputTextChange")
-        .do(({text}) -> store.setTodoText(text))
+        .map(({text}) -> setTodoText(text))
 
-    addItem = main_input_enter_key_down
+    addItemStream = main_input_enter_key_down
         .filter(({text}) -> text.length > 0)
-        .do(({text}) ->
-            store.addItem text
-            store.setTodoText "")
+        .map(({text}) -> addItem(text))
 
-    destroyItem = subject
+    destroyItemStream = subject
         .filter(({action}) -> action is "itemDestroy")
-        .do(({id}) -> store.destroyItem id)
+        .map(({id}) -> destroyItem(id))
 
-    checkItem = subject
+    checkItemStream = subject
         .filter(({action}) -> action is "itemCheck")
-        .do(({checked, id}) -> store.checkItem id, checked)
+        .map(({checked, id}) -> checkItem(id, checked))
 
     checkAll = subject
         .filter(({action}) -> action is "toggleCheckAll")
-        .do(({checked}) -> store.setCheckAll checked)
-
-    editItem = subject
-        .filter(({action}) -> action is "editItem")
-        .do(({id, isEditMode}) -> store.editItem id, isEditMode)
+        .map(({checked}) -> setCheckAll(checked))
 
     Rx.Observable.merge(
-        addItem
-        todoTextChange
-        destroyItem
-        checkItem
-        checkAll
-        editItem
-    ).subscribe(
-        -> view.setProps store.getViewState()
-        (err) ->
-            console.error? err
+        addItemStream, todoTextChange, destroyItemStream, checkItemStream,
+        checkAll)
+    .scan(initialState, (currentState, action) -> action(currentState))
+    .subscribe(
+        (state) -> view.setProps getViewState(state)
+        (err) -> throw new Error(err.stack)
     )
 
 

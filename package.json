@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "immutable": "^3.7.1",
+    "immutable": "^3.7.3",
     "react": "^0.13.1",
     "rx": "^2.3.24"
   },

@@ -1,8 +1,10 @@
 React = require 'react'
+PureRenderMixin = require('react/addons').addons.PureRenderMixin
 {div, h1, input, header, section, label, ul, li, button, p} = React.DOM
 
 
 TodoItem = React.createClass
+    mixins: [PureRenderMixin]
 
     destroy: ->
         @props.eventStream.onNext

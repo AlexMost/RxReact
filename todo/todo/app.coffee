@@ -2,19 +2,17 @@ Rx = require 'rx'
 React = require 'react'
 {createFactory} = React
 TodoComponent = createFactory(require './views/todo_list')
-TodoStorage = require './todo_storage'
+{TodoStorage} = require './todo_storage'
 dispatchActions = require './dispatcher'
 
 
 initApp = (mountNode) ->
-    subject = new Rx.Subject()
+    eventStream = new Rx.Subject()
 
-    store = new TodoStorage()
+    state = TodoStorage()
 
-    componentProps = store.getViewState()
-    componentProps.eventStream = subject
-    view = React.render TodoComponent(componentProps), mountNode
-    dispatchActions(view, subject, store)
+    view = React.render TodoComponent({eventStream}), mountNode
+    dispatchActions(view, eventStream, state)
 
 module.exports = initApp
 

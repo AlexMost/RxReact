@@ -1,12 +1,16 @@
 React = require 'react'
+PureRenderMixin = require('react/addons').addons.PureRenderMixin
 {createFactory} = React
 {div, h1, h2, input, header, section, label, ul, li, button, p, a} = React.DOM
 TodoItem = createFactory(require './todo_item')
-
+Immutable = require 'immutable'
+List = Immutable.List
 
 TodoList = React.createClass
+    mixins: [PureRenderMixin]
+
     getDefaultProps: ->
-        todoItems: []
+        todoItems: List()
 
 
     mainInputKeyDown: (ev) ->
@@ -55,8 +59,9 @@ TodoList = React.createClass
                     "Mark all as complete"
 
                 ul {id: "todo-list"},
-                    @props.todoItems.map (item) =>
+                    @props.todoItems.toArray().map (item) =>
                         TodoItem {
+                            key: item.id
                             item
                             eventStream: @props.eventStream
                         }

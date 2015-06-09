@@ -1,46 +1,68 @@
-class TodoStorage
-    constructor: ->
-        @todoItems = []
-        @todoText = ""
-        @doneItems = 0
-        @checkAll = false
+Immutable = require 'immutable'
+Record = Immutable.Record
+List = Immutable.List
 
-    setTodoText: (@todoText) ->
+TodoStorage = Record
+    todoItems: List()
+    todoText: ""
+    doneItems: 0
+    checkAll: false
+    eventStream: null
 
-    addItem: (text) ->
-        @todoItems.unshift
-            text: text
-            id: @todoItems.length
-            complete: false
 
-    destroyItem: (id) ->
-        @todoItems = @todoItems.filter (i) -> i.id != id
+TodoItem = Record
+    text: ""
+    id: ""
+    complete: false
 
-    checkItem: (id, isChecked) ->
-        @todoItems = @todoItems.map (i) ->
-            if i.id is id
-                i.complete = isChecked
-            i
 
-    setCheckAll: (@checkAll) ->
-        @todoItems = @todoItems.map (i) =>
-            i.complete = @checkAll
-            i
+# String -> TodoState
+setTodoText = (text) -> (state) ->
+    state.set("todoText", text)
 
-    editItem: (id, isEditMode) ->
-        @todoItems = @todoItems.map (i) ->
-            if i.id is id
-                i.isEditMode = isEditMode
+
+# String -> TodoState
+addItem = (text) -> (state) ->
+    currentItems = state.get("todoItems")
+
+    newItem = TodoItem
+        text: text
+        id: text
+        complete: false
+
+    state.set("todoItems", currentItems.unshift(newItem))
+         .set("todoText", "")
+
+
+# String -> TodoState
+destroyItem = (id) -> (state) ->
+    currentItems = state.get("todoItems")
+    state.set("todoItems", currentItems.filter((i) -> i.id != id))
+
+
+# (String, String) -> TodoState
+checkItem = (id, checked) -> (state) ->
+    currentItems = state.get("todoItems")
+    state.set("todoItems", currentItems.map(
+        (i) ->
+            if i.id == id
+                i.set("complete", checked)
             else
-                i.isEditMode = ! isEditMode
-            i
+                i
+        ))  
 
-    getViewState: ->
-        {
-            @todoItems
-            @todoText
-            @checkAll
-        }
+# Boolean -> TodoState
+setCheckAll = (checkAll) -> (state) ->
+    currentItems = state.get("todoItems")
+    state.set("todoItems",
+        currentItems.map((i) -> i.set("complete", checkAll)))
 
 
-module.exports = TodoStorage
+module.exports = {
+    TodoStorage
+    setTodoText
+    addItem
+    destroyItem
+    checkItem
+    setCheckAll
+}
