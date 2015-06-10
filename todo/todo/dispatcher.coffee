@@ -1,14 +1,9 @@
 Rx = require 'rx'
 {setTodoText, addItem, destroyItem,
-checkItem, setCheckAll} = require './todo_storage'
+checkItem, setCheckAll} = require './todo_state'
 
 
-getViewState = (state) ->
-    todoText: state.get("todoText")
-    todoItems: state.get("todoItems")
-
-
-dispatch_actions = (view, subject, initialState) ->
+dispatch_actions = (subject, initialState) ->
     mainInputKeyDown = subject
         .filter(({action}) -> action is "mainInputKeyDown")
 
@@ -36,13 +31,8 @@ dispatch_actions = (view, subject, initialState) ->
         .map(({checked}) -> setCheckAll(checked))
 
     Rx.Observable.merge(
-        addItemStream, todoTextChange, destroyItemStream, checkItemStream,
-        checkAll)
+        addItemStream, todoTextChange, destroyItemStream, checkItemStream, checkAll)
     .scan(initialState, (currentState, action) -> action(currentState))
-    .subscribe(
-        (state) -> view.setProps getViewState(state)
-        (err) -> throw new Error(err.stack)
-    )
 
 
 module.exports = dispatch_actions

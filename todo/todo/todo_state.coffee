@@ -2,30 +2,30 @@ Immutable = require 'immutable'
 Record = Immutable.Record
 List = Immutable.List
 
-TodoStorage = Record
+
+TodoListState = Record
     todoItems: List()
     todoText: ""
     doneItems: 0
     checkAll: false
-    eventStream: null
 
 
-TodoItem = Record
+TodoItemState = Record
     text: ""
     id: ""
     complete: false
 
 
-# String -> TodoState
+# String -> TodoState -> TodoState
 setTodoText = (text) -> (state) ->
     state.set("todoText", text)
 
 
-# String -> TodoState
+# String -> TodoState -> TodoState
 addItem = (text) -> (state) ->
     currentItems = state.get("todoItems")
 
-    newItem = TodoItem
+    newItem = TodoItemState
         text: text
         id: text
         complete: false
@@ -34,13 +34,13 @@ addItem = (text) -> (state) ->
          .set("todoText", "")
 
 
-# String -> TodoState
+# String -> TodoState -> TodoState
 destroyItem = (id) -> (state) ->
     currentItems = state.get("todoItems")
     state.set("todoItems", currentItems.filter((i) -> i.id != id))
 
 
-# (String, String) -> TodoState
+# (String, String) -> TodoState -> TodoState
 checkItem = (id, checked) -> (state) ->
     currentItems = state.get("todoItems")
     state.set("todoItems", currentItems.map(
@@ -51,7 +51,7 @@ checkItem = (id, checked) -> (state) ->
                 i
         ))  
 
-# Boolean -> TodoState
+# Boolean -> TodoState -> TodoState
 setCheckAll = (checkAll) -> (state) ->
     currentItems = state.get("todoItems")
     state.set("todoItems",
@@ -59,7 +59,7 @@ setCheckAll = (checkAll) -> (state) ->
 
 
 module.exports = {
-    TodoStorage
+    TodoListState
     setTodoText
     addItem
     destroyItem

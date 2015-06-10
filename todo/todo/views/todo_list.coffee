@@ -66,5 +66,9 @@ TodoList = React.createClass
                             eventStream: @props.eventStream
                         }
 
+                button
+                    onClick: => @props.eventStream.onNext {action: "history_back"}
+                    "Back"
+
 
 module.exports = TodoList
