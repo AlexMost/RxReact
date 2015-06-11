@@ -203,7 +203,6 @@ MainView = React.createClass({
     };
   },
   render: function() {
-    console.log("render");
     return div(null, table({
       style: {
         border: "1px solid gray"
