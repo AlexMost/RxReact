@@ -13,7 +13,9 @@ BlackCellClass = React.createClass
 
 WhiteCellClass = React.createClass
     render: ->
-        td {style: {width: "10px", height: "10px", background: "#FFF"}}    
+        td 
+            style: {width: "10px", height: "10px", background: "#FFF", cursor: "pointer"}
+            onClick: @props.onSelect
 
 
 BlackCell = createFactory(BlackCellClass)
@@ -28,12 +30,20 @@ MainView = React.createClass
 
     render: ->
         div null,
-            table null,
+            table {style: {border: "1px solid gray"}},
                 tbody null,
-                    @props.cells.toArray().map((row, i) ->
+                    @props.cells.toArray().map((row, i) =>
                         tr {key: i},
-                            row.toArray().map((cell, j) ->
-                                cell and BlackCell({key: j}) or WhiteCell({key: j})
+                            row.toArray().map((cell, j) =>
+                                if cell
+                                    BlackCell({key: j})
+                                else
+                                    WhiteCell
+                                        key: j
+                                        onSelect: => @props.eventStream.onNext {
+                                                action: "add_point"
+                                                point: [i, j]
+                                            }
                             )
                     )
 

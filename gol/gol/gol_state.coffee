@@ -39,4 +39,7 @@ calcNewState = (state) ->
     state.set("cells", newCells)
 
 
-module.exports = {GolState, calcNewState}
+addPoint = ([y, x]) -> (state) -> state.setIn(["cells", y, x], LIVE)
+
+
+module.exports = {GolState, calcNewState, addPoint}
