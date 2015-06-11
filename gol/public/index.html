@@ -4,6 +4,27 @@
     <meta charset="utf-8">
     <title>Rx.js + React.js • Gol</title>
   </head>
+  <style>
+   .live {
+        background: #000;
+        width: 10px;
+        height: 10px;
+        border: 1px solid white;
+   }
+
+   .dead {
+        background: #FFF;
+        width: 10px;
+        height: 10px;
+        cursor: pointer;
+        border: 1px solid white;
+   }
+
+   .dead:hover {
+        border: 1px solid black;
+   }
+
+  </style>
   <body>
     <h1>Gol in RxReact</h1>
     <div data-rcomp="./gol/gol/view" id="hello_container"></div>

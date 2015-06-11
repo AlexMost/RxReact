@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var GolState, Immutable, List, MainView, React, Rx, dispatchActions, getViewState, initApp, initialData;
+var GolState, Immutable, List, MainView, React, Rx, addCols, addRows, dispatchActions, getViewState, initApp, initialData, _ref;
 
 Rx = require('rx');
 
@@ -7,7 +7,7 @@ React = require('react');
 
 MainView = React.createFactory(require('./view'));
 
-GolState = require('./gol_state').GolState;
+_ref = require('./gol_state'), GolState = _ref.GolState, addCols = _ref.addCols, addRows = _ref.addRows;
 
 dispatchActions = require('./dispatcher');
 
@@ -15,7 +15,7 @@ Immutable = require('immutable');
 
 List = Immutable.List;
 
-initialData = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 1, 1, 0, 0], [0, 1, 1, 0, 1], [0, 0, 0, 0, 0]];
+initialData = [[0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0], [0, 0, 1, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0]];
 
 getViewState = function(state) {
   return {
@@ -26,9 +26,9 @@ getViewState = function(state) {
 initApp = function(mountNode) {
   var eventStream, initialState, stateStream, view;
   eventStream = new Rx.Subject();
-  initialState = GolState({
+  initialState = addRows(30)(addCols(60)(GolState({
     cells: Immutable.fromJS(initialData)
-  });
+  })));
   view = React.render(MainView({
     eventStream: eventStream
   }), mountNode);
@@ -45,29 +45,60 @@ module.exports = initApp;
 
 
 },{"./dispatcher":2,"./gol_state":3,"./view":5,"immutable":8,"react":181,"rx":186}],2:[function(require,module,exports){
-var Rx, addPoint, calcNewState, dispatchActions, _ref;
+var Rx, addCol, addPoint, addRow, calcNewState, dispatchActions, _ref;
 
 Rx = require('rx');
 
-_ref = require('./gol_state'), calcNewState = _ref.calcNewState, addPoint = _ref.addPoint;
+_ref = require('./gol_state'), calcNewState = _ref.calcNewState, addPoint = _ref.addPoint, addRow = _ref.addRow, addCol = _ref.addCol;
 
 dispatchActions = function(initialState, eventStream) {
-  var addPointStream, gameLoopStream;
-  gameLoopStream = Rx.Observable.interval(500).map(function() {
+  var addColStream, addPointOnCellClick, addPointStream, addPointsOnHover, addRowStream, gameLoopStream, mouseDown, mouseMove, mouseUp;
+  gameLoopStream = Rx.Observable.interval(50).map(function() {
     return calcNewState;
   });
-  addPointStream = eventStream.filter(function(_arg) {
+  addRowStream = eventStream.filter(function(_arg) {
+    var action;
+    action = _arg.action;
+    return action === "add_row";
+  }).map(function() {
+    return addRow;
+  });
+  addColStream = eventStream.filter(function(_arg) {
+    var action;
+    action = _arg.action;
+    return action === "add_col";
+  }).map(function() {
+    return addCol;
+  });
+  mouseDown = eventStream.filter(function(_arg) {
+    var action;
+    action = _arg.action;
+    return action === "on_cell_mouse_down";
+  });
+  mouseMove = eventStream.filter(function(_arg) {
+    var action;
+    action = _arg.action;
+    return action === "on_hover";
+  });
+  mouseUp = eventStream.filter(function(_arg) {
+    var action;
+    action = _arg.action;
+    return action === "on_cell_mouse_up";
+  });
+  addPointOnCellClick = eventStream.filter(function(_arg) {
     var action;
     action = _arg.action;
     return action === "add_point";
-  }).map(function(_arg) {
+  });
+  addPointsOnHover = mouseDown.flatMap(mouseMove.distinctUntilChanged().takeUntil(mouseUp));
+  addPointStream = Rx.Observable.merge(addPointOnCellClick).map(function(_arg) {
     var point;
     point = _arg.point;
     return addPoint(point);
   });
-  return Rx.Observable.merge(gameLoopStream, addPointStream).scan(initialState, function(state, action) {
+  return Rx.Observable.merge(gameLoopStream, addPointStream, addRowStream, addColStream).scan(initialState, function(state, action) {
     return action(state);
-  });
+  }).startWith(initialState);
 };
 
 module.exports = dispatchActions;
@@ -75,7 +106,7 @@ module.exports = dispatchActions;
 
 
 },{"./gol_state":3,"rx":186}],3:[function(require,module,exports){
-var DEAD, GolState, Immutable, LIVE, List, Record, addPoint, calcNewState, findNeighbors;
+var DEAD, GolState, Immutable, LIVE, List, Record, addCol, addCols, addPoint, addRow, addRows, calcNewState, findNeighbors;
 
 Immutable = require('immutable');
 
@@ -133,10 +164,64 @@ addPoint = function(_arg) {
   };
 };
 
+addRow = function(state) {
+  var currentCells, i, new_row, rowLength;
+  currentCells = state.get("cells");
+  rowLength = currentCells.get(0).size;
+  new_row = List((function() {
+    var _i, _results;
+    _results = [];
+    for (i = _i = 0; 0 <= rowLength ? _i <= rowLength : _i >= rowLength; i = 0 <= rowLength ? ++_i : --_i) {
+      _results.push(DEAD);
+    }
+    return _results;
+  })());
+  return state.set("cells", currentCells.push(new_row));
+};
+
+addCol = function(state) {
+  var currentCells, newCells;
+  currentCells = state.get("cells");
+  newCells = currentCells.map(function(row) {
+    return row.push(DEAD);
+  });
+  return state.set("cells", newCells);
+};
+
+addCols = function(n) {
+  return function(state) {
+    var _i, _results;
+    return (function() {
+      _results = [];
+      for (var _i = 0; 0 <= n ? _i <= n : _i >= n; 0 <= n ? _i++ : _i--){ _results.push(_i); }
+      return _results;
+    }).apply(this).reduce((function(s, i) {
+      return addCol(s);
+    }), state);
+  };
+};
+
+addRows = function(n) {
+  return function(state) {
+    var _i, _results;
+    return (function() {
+      _results = [];
+      for (var _i = 0; 0 <= n ? _i <= n : _i >= n; 0 <= n ? _i++ : _i--){ _results.push(_i); }
+      return _results;
+    }).apply(this).reduce((function(s, i) {
+      return addRow(s);
+    }), state);
+  };
+};
+
 module.exports = {
   GolState: GolState,
   calcNewState: calcNewState,
-  addPoint: addPoint
+  addPoint: addPoint,
+  addRow: addRow,
+  addCol: addCol,
+  addCols: addCols,
+  addRows: addRows
 };
 
 
@@ -168,11 +253,8 @@ List = Immutable.List;
 BlackCellClass = React.createClass({
   render: function() {
     return td({
-      style: {
-        width: "10px",
-        height: "10px",
-        background: "#000"
-      }
+      className: "live",
+      onMouseUp: this.props.onMouseUp
     });
   }
 });
@@ -180,13 +262,11 @@ BlackCellClass = React.createClass({
 WhiteCellClass = React.createClass({
   render: function() {
     return td({
-      style: {
-        width: "10px",
-        height: "10px",
-        background: "#FFF",
-        cursor: "pointer"
-      },
-      onClick: this.props.onSelect
+      className: "dead",
+      onClick: this.props.onSelect,
+      onMouseOver: this.props.onHover,
+      onMouseDown: this.props.onMouseDown,
+      onMouseUp: this.props.onMouseUp
     });
   }
 });
@@ -203,10 +283,28 @@ MainView = React.createClass({
     };
   },
   render: function() {
-    return div(null, table({
+    return div(null, button({
+      onClick: (function(_this) {
+        return function() {
+          return _this.props.eventStream.onNext({
+            action: "add_row"
+          });
+        };
+      })(this)
+    }, "stop"), button({
+      onClick: (function(_this) {
+        return function() {
+          return _this.props.eventStream.onNext({
+            action: "add_col"
+          });
+        };
+      })(this)
+    }, "addCol"), table({
       style: {
         border: "1px solid gray"
-      }
+      },
+      cellPadding: 0,
+      cellSpacing: 0
     }, tbody(null, this.props.cells.toArray().map((function(_this) {
       return function(row, i) {
         return tr({
@@ -214,7 +312,13 @@ MainView = React.createClass({
         }, row.toArray().map(function(cell, j) {
           if (cell) {
             return BlackCell({
-              key: j
+              key: j,
+              onMouseUp: function() {
+                return _this.props.eventStream.onNext({
+                  action: "on_cell_mouse_up",
+                  point: [i, j]
+                });
+              }
             });
           } else {
             return WhiteCell({
@@ -222,6 +326,24 @@ MainView = React.createClass({
               onSelect: function() {
                 return _this.props.eventStream.onNext({
                   action: "add_point",
+                  point: [i, j]
+                });
+              },
+              onHover: function() {
+                return _this.props.eventStream.onNext({
+                  action: "on_hover",
+                  point: [i, j]
+                });
+              },
+              onMouseDown: function() {
+                return _this.props.eventStream.onNext({
+                  action: "on_cell_mouse_down",
+                  point: [i, j]
+                });
+              },
+              onMouseUp: function() {
+                return _this.props.eventStream.onNext({
+                  action: "on_cell_mouse_up",
                   point: [i, j]
                 });
               }

@@ -46,4 +46,27 @@ calcNewState = (state) ->
 addPoint = ([y, x]) -> (state) -> state.setIn(["cells", y, x], LIVE)
 
 
-module.exports = {GolState, calcNewState, addPoint}
+addRow = (state) ->
+    currentCells = state.get("cells")
+    rowLength = currentCells.get(0).size
+    new_row = List((DEAD for i in [0..rowLength]))
+    state.set("cells", currentCells.push(new_row))
+
+
+addCol = (state) ->
+    currentCells = state.get("cells")
+    newCells = currentCells.map((row) ->
+        row.push(DEAD))
+    state.set("cells", newCells)
+
+
+addCols = (n) -> (state) ->
+    [0..n].reduce(((s, i) -> addCol(s)), state)
+
+
+addRows = (n) -> (state) ->
+    [0..n].reduce(((s, i) -> addRow(s)), state)
+
+
+module.exports = {
+    GolState, calcNewState, addPoint, addRow, addCol, addCols, addRows}
