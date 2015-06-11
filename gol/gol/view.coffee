@@ -29,7 +29,6 @@ MainView = React.createClass
         cells: List(List())
 
     render: ->
-        console.log "render"
         div null,
             table {style: {border: "1px solid gray"}},
                 tbody null,
