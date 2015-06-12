@@ -10,7 +10,7 @@ BlackCellClass = React.createClass
     render: ->
         td 
             className: "live"
-            onMouseUp: @props.onMouseUp
+            onClick: @props.onSelect
 
 
 WhiteCellClass = React.createClass
@@ -18,9 +18,7 @@ WhiteCellClass = React.createClass
         td 
             className: "dead"
             onClick: @props.onSelect
-            onMouseOver: @props.onHover
-            onMouseDown: @props.onMouseDown
-            onMouseUp: @props.onMouseUp
+            
 
 
 BlackCell = createFactory(BlackCellClass)
@@ -35,18 +33,22 @@ MainView = React.createClass
 
     render: ->
         div null,
+            if @props.isPlay
+                button
+                    onClick: => @props.eventStream.onNext
+                        action: "stop"
+                    "stop"
+            else
+                button
+                    onClick: => @props.eventStream.onNext
+                        action: "play"
+                        
+                    "play"
 
             button
-                onClick: => @props.eventStream.onNext
-                    action: "add_row"
+                onClick: => @props.eventStream.onNext {action: "save"}
+                "dump"
 
-                "stop"
-
-            button
-                onClick: => @props.eventStream.onNext
-                    action: "add_col"
-                    
-                "addCol"
             table
                 style: {border: "1px solid gray"}
                 cellPadding: 0
@@ -58,10 +60,10 @@ MainView = React.createClass
                                 if cell
                                     BlackCell
                                         key: j
-                                        onMouseUp: => @props.eventStream.onNext {
-                                                action: "on_cell_mouse_up"
+                                        onSelect: => @props.eventStream.onNext {
+                                                action: "del_point"
                                                 point: [i, j]
-                                            }
+                                            } 
                                 else
                                     WhiteCell
                                         key: j
@@ -69,19 +71,6 @@ MainView = React.createClass
                                                 action: "add_point"
                                                 point: [i, j]
                                             } 
-                                        onHover: => @props.eventStream.onNext {
-                                                action: "on_hover"
-                                                point: [i, j]
-                                            }
-
-                                        onMouseDown: => @props.eventStream.onNext {
-                                                action: "on_cell_mouse_down"
-                                                point: [i, j]
-                                            }
-                                        onMouseUp: => @props.eventStream.onNext {
-                                                action: "on_cell_mouse_up"
-                                                point: [i, j]
-                                            }
                             )
                     )
 

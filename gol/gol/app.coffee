@@ -1,30 +1,22 @@
 Rx = require 'rx'
 React = require 'react'
 MainView = React.createFactory(require './view')
-{GolState, addCols, addRows} = require './gol_state'
+{GolState, addCols, addRows, STATUS} = require './gol_state'
 dispatchActions = require './dispatcher'
 Immutable = require 'immutable'
 List = Immutable.List
 
-
-initialData = [
-    [0, 0, 0, 0, 0, 0, 0]
-    [0, 1, 1, 1, 0, 1, 0]
-    [0, 1, 0, 0, 0, 0, 0]
-    [0, 0, 0, 0, 1, 1, 0]
-    [0, 0, 1, 1, 0, 1, 0]
-    [0, 1, 0, 1, 0, 1, 0]
-    [0, 0, 0, 0, 0, 0, 0]
-]
+initialData = require './initial_data'
 
 getViewState = (state) ->
     cells: state.get("cells")
+    isPlay: state.get("status") == STATUS.PLAY
 
 
 initApp = (mountNode) ->
     eventStream = new Rx.Subject()
 
-    initialState = addRows(30) addCols(60) GolState(cells: Immutable.fromJS(initialData))
+    initialState = GolState(cells: Immutable.fromJS(initialData))
 
     view = React.render MainView({eventStream}), mountNode
 
@@ -33,6 +25,8 @@ initApp = (mountNode) ->
     stateStream.subscribe(
         (newState) -> view.setProps getViewState(newState)
         (err) -> throw new Error err.stack)
+
+    eventStream.onNext {action: "play"}
 
 
 module.exports = initApp

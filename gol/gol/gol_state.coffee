@@ -2,9 +2,12 @@ Immutable = require 'immutable'
 Record = Immutable.Record
 List = Immutable.List
 
+STATUS = {PLAY: 0, STOP: 1}
 
 GolState = Record
     cells: List(List())
+    status: STATUS.PLAY
+    saves: List()
 
 
 LIVE = 1
@@ -46,6 +49,9 @@ calcNewState = (state) ->
 addPoint = ([y, x]) -> (state) -> state.setIn(["cells", y, x], LIVE)
 
 
+delPoint = ([y, x]) -> (state) -> state.setIn(["cells", y, x], DEAD)
+
+
 addRow = (state) ->
     currentCells = state.get("cells")
     rowLength = currentCells.get(0).size
@@ -68,5 +74,19 @@ addRows = (n) -> (state) ->
     [0..n].reduce(((s, i) -> addRow(s)), state)
 
 
+stop = (state) -> state.set("status", STATUS.STOP)
+
+
+play = (state) -> state.set("status", STATUS.PLAY)
+
+
+saveSate = (state) ->
+    console.log JSON.stringify(state.get("cells").toJS())
+    state.set("saves", state.get("saves").push(state.get("cells")))
+
+
 module.exports = {
-    GolState, calcNewState, addPoint, addRow, addCol, addCols, addRows}
+    GolState, calcNewState, addPoint,
+    addRow, addCol, addCols, addRows, STATUS,
+    stop, play, delPoint, saveSate
+}
